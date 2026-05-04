@@ -39,7 +39,7 @@ def linearize(f, s, u):
     """
     # WRITE YOUR CODE BELOW ###################################################
     # INSTRUCTIONS: Use JAX to compute `A` and `B` in one line.
-    raise NotImplementedError()
+    A, B = jax.jacobian(f, argnums=(0, 1))(s, u)
     ###########################################################################
     return A, B
 
@@ -112,7 +112,29 @@ def ilqr(f, s0, s_goal, N, Q, R, QN, eps=1e-3, max_iters=1000):
 
         # PART (c) ############################################################
         # INSTRUCTIONS: Update `Y`, `y`, `ds`, `du`, `s_bar`, and `u_bar`.
-        raise NotImplementedError()
+
+        # Backward pass: Riccati recursion for P (value Hessian), p (value gradient),
+        # gains Y[k] and offsets y[k]
+        P = QN
+        p = QN @ (s_bar[-1] - s_goal)
+        for k in range(N - 1, -1, -1):
+            inv = np.linalg.inv(R + B[k].T @ P @ B[k])
+            Y[k] = -inv @ B[k].T @ P @ A[k]              
+            y[k] = -inv @ (R @ u_bar[k] + B[k].T @ p)    
+            p = Q @ (s_bar[k] - s_goal) + A[k].T @ (p + P @ B[k] @ y[k])
+            P = Q + A[k].T @ P @ (A[k] + B[k] @ Y[k])
+
+        # Forward pass: apply policy on real dynamics
+        s_new = np.zeros_like(s_bar)
+        u_new = np.zeros_like(u_bar)
+        s_new[0] = s0
+        for k in range(N):
+            du[k] = Y[k] @ (s_new[k] - s_bar[k]) + y[k]
+            u_new[k] = u_bar[k] + du[k]
+            s_new[k + 1] = f(s_new[k], u_new[k])
+        s_bar = s_new
+        u_bar = u_new
+
         #######################################################################
 
         if np.max(np.abs(du)) < eps:
@@ -156,7 +178,7 @@ s_goal = np.array([0.0, np.pi, 0.0, 0.0])  # goal state
 T = 10.0  # simulation time
 dt = 0.1  # sampling time
 animate = False  # flag for animation
-closed_loop = False  # flag for closed-loop control
+closed_loop = True  # flag for closed-loop control
 
 # Initialize continuous-time and discretized dynamics
 f = jax.jit(cartpole)
@@ -181,11 +203,9 @@ for k in range(N):
     # INSTRUCTIONS: Compute either the closed-loop or open-loop value of
     # `u[k]`, depending on the Boolean flag `closed_loop`.
     if closed_loop:
-        u[k] = 0.0
-        raise NotImplementedError()
+        u[k] = u_bar[k] + Y[k] @ (s[k] - s_bar[k]) + y[k]
     else:  # do open-loop control
-        u[k] = 0.0
-        raise NotImplementedError()
+        u[k] = u_bar[k]
     ###########################################################################
     s[k + 1] = odeint(lambda s, t: f(s, u[k]), s[k], t[k : k + 2])[1]
 print("done! ({:.2f} s)".format(time.time() - start), flush=True)
