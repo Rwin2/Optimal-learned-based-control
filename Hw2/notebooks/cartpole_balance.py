@@ -59,8 +59,12 @@ def reference(t: float) -> np.ndarray:
     T = 10.0  # Period
 
     # PART (d) ##################################################
-    # INSTRUCTIONS: Compute the reference state for a given time
-    raise NotImplementedError()
+    return np.array([
+        a * np.sin(2 * np.pi * t / T),
+        np.pi,
+        a * (2 * np.pi / T) * np.cos(2 * np.pi * t / T),
+        0.0,
+    ])
     # END PART (d) ##############################################
 
 
@@ -84,9 +88,12 @@ def ricatti_recursion(
     converged = False
     for i in range(max_iters):
         # PART (b) ##################################################
-        # INSTRUCTIONS: Apply the Ricatti equation until convergence
-        K = NotImplemented
-        raise NotImplementedError()
+        K = -np.linalg.inv(R + B.T @ P_prev @ B) @ B.T @ P_prev @ A
+        P = Q + A.T @ P_prev @ (A + B @ K)
+        if np.max(np.abs(P - P_prev)) < eps:
+            converged = True
+            break
+        P_prev = P
         # END PART (b) ##############################################
     if not converged:
         raise RuntimeError("Ricatti recursion did not converge!")
@@ -117,11 +124,14 @@ def simulate(
         return cartpole(s, u)
 
     # PART (c) ##################################################
-    # INSTRUCTIONS: Complete the function to simulate the cartpole system
-    # Hint: use the cartpole wrapper above with odeint
-    s = NotImplemented
-    u = NotImplemented
-    raise NotImplementedError()
+    N = t.size - 1
+    s = np.zeros((t.size, n))
+    u = np.zeros((t.size, m))
+    s[0] = s0
+    for k in range(N):
+        u[k] = K @ (s[k] - s_ref[k]) + u_ref
+        s[k + 1] = odeint(cartpole_wrapper, s[k], t[k : k + 2], (u[k],))[1]
+    u[N] = K @ (s[N] - s_ref[N]) + u_ref
     # END PART (c) ##############################################
     return s, u
 
@@ -135,9 +145,13 @@ def compute_lti_matrices() -> tuple[np.ndarray, np.ndarray]:
             np.ndarray: The B (controls) matrix, shape (n, m)
     """
     # PART (a) ##################################################
-    # INSTRUCTIONS: Construct the A and B matrices
-    A = NotImplemented
-    B = NotImplemented
+    A = np.eye(n) + dt * np.array([
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+        [0, mp * g / mc, 0, 0],
+        [0, (mc + mp) * g / (mc * L), 0, 0],
+    ])
+    B = dt * np.array([[0], [0], [1 / mc], [1 / (mc * L)]])
     # END PART (a) ##############################################
     return A, B
 
