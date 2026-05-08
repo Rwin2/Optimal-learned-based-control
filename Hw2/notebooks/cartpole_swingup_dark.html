@@ -339,7 +339,10 @@ body .il { color: #D19A66 } /* Literal.Number.Integer.Long */
 <span class="normal">229</span>
 <span class="normal">230</span>
 <span class="normal">231</span>
-<span class="normal">232</span></pre></div></td><td class="code"><div><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span></pre></div></td><td class="code"><div><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Starter code for the problem &quot;Cart-pole swing-up&quot;.</span>
 
 <span class="sd">Autonomous Systems Lab (ASL), Stanford University</span>
@@ -454,6 +457,8 @@ body .il { color: #D19A66 } /* Literal.Number.Integer.Long */
         <span class="c1"># PART (c) ############################################################</span>
         <span class="c1"># INSTRUCTIONS: Update `Y`, `y`, `ds`, `du`, `s_bar`, and `u_bar`.</span>
 
+        <span class="c1"># Backward pass: Riccati recursion for P (value Hessian), p (value gradient),</span>
+        <span class="c1"># gains Y[k] and offsets y[k]</span>
         <span class="n">P</span> <span class="o">=</span> <span class="n">QN</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">QN</span> <span class="o">@</span> <span class="p">(</span><span class="n">s_bar</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">s_goal</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
@@ -463,6 +468,7 @@ body .il { color: #D19A66 } /* Literal.Number.Integer.Long */
             <span class="n">p</span> <span class="o">=</span> <span class="n">Q</span> <span class="o">@</span> <span class="p">(</span><span class="n">s_bar</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">s_goal</span><span class="p">)</span> <span class="o">+</span> <span class="n">A</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">p</span> <span class="o">+</span> <span class="n">P</span> <span class="o">@</span> <span class="n">B</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">@</span> <span class="n">y</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
             <span class="n">P</span> <span class="o">=</span> <span class="n">Q</span> <span class="o">+</span> <span class="n">A</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">P</span> <span class="o">@</span> <span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">B</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">@</span> <span class="n">Y</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
 
+        <span class="c1"># Forward pass: apply policy on real dynamics</span>
         <span class="n">s_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">s_bar</span><span class="p">)</span>
         <span class="n">u_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">u_bar</span><span class="p">)</span>
         <span class="n">s_new</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">s0</span>

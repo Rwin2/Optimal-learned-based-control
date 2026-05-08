@@ -113,6 +113,8 @@ def ilqr(f, s0, s_goal, N, Q, R, QN, eps=1e-3, max_iters=1000):
         # PART (c) ############################################################
         # INSTRUCTIONS: Update `Y`, `y`, `ds`, `du`, `s_bar`, and `u_bar`.
 
+        # Backward pass: Riccati recursion for P (value Hessian), p (value gradient),
+        # gains Y[k] and offsets y[k]
         P = QN
         p = QN @ (s_bar[-1] - s_goal)
         for k in range(N - 1, -1, -1):
@@ -122,6 +124,7 @@ def ilqr(f, s0, s_goal, N, Q, R, QN, eps=1e-3, max_iters=1000):
             p = Q @ (s_bar[k] - s_goal) + A[k].T @ (p + P @ B[k] @ y[k])
             P = Q + A[k].T @ P @ (A[k] + B[k] @ Y[k])
 
+        # Forward pass: apply policy on real dynamics
         s_new = np.zeros_like(s_bar)
         u_new = np.zeros_like(u_bar)
         s_new[0] = s0
