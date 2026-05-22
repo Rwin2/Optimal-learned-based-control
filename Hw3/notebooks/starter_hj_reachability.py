@@ -131,12 +131,11 @@ def target_set(state):
     """
     # PART (b): WRITE YOUR CODE BELOW ###############################################
     y, v_y, phi, omega = state
-    return jnp.max(jnp.array([
-        (y - 3.0) * (y - 7.0),
-        (v_y - 1.0) * (v_y + 1.0),
-        (phi - jnp.pi / 12.0) * (phi + jnp.pi / 12.0),
-        (omega - 1.0) * (omega + 1.0),
-    ]))
+    h_y = jnp.maximum(3.0 - y, y - 7.0)
+    h_vy = jnp.maximum(-1.0 - v_y, v_y - 1.0)
+    h_phi = jnp.maximum(-jnp.pi / 12.0 - phi, phi - jnp.pi / 12.0)
+    h_omega = jnp.maximum(-1.0 - omega, omega - 1.0)
+    return jnp.maximum(jnp.maximum(h_y, h_vy), jnp.maximum(h_phi, h_omega))
     #################################################################################
 
 
@@ -151,11 +150,10 @@ def envelope_set(state):
     """
     # PART (c): WRITE YOUR CODE BELOW ###############################################
     y, v_y, phi, omega = state
-    return jnp.max(jnp.array([
-        (y - 1.0) * (y - 9.0),
-        (v_y - 6.0) * (v_y + 6.0),
-        (omega - 8.0) * (omega + 8.0),
-    ]))
+    e_y = jnp.maximum(1.0 - y, y - 9.0)
+    e_vy = jnp.maximum(-6.0 - v_y, v_y - 6.0)
+    e_omega = jnp.maximum(-8.0 - omega, omega - 8.0)
+    return jnp.maximum(jnp.maximum(e_y, e_vy), e_omega)
     #################################################################################
 
 
